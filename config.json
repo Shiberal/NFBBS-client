@@ -4,7 +4,8 @@
         "base_url": "http://127.0.0.1:3000",
         "bucket": "laptop",
         "folder": "C:/Users/franc/Desktop/B",
-        "token": "dGVzdDp0ZXN0MQ=="
+        "token": "dGVzdDp0ZXN0MQ==",
+        "incremental": true
       }
     ]
   }

@@ -1,6 +1,8 @@
 import json
 import argparse
 
+import requests
+
 from libs.add_args_snapshot import add_args_snapshot
 from libs.add_args_backup import add_args_backup
 
@@ -63,5 +65,26 @@ if not token:
 # Construct the headers with the token
 headers = {'Authorization': f'Basic {token}'}
 
+
+
+
+
 add_args_backup(args, base_url, folder_path, bucket_name, headers)
 add_args_snapshot(args, base_url, headers,folder_path)
+
+if args.list:
+        # Construct the URL for listing the contents of the bucket
+            list_bucket_url = f"{base_url}/{args.bucket}/list"
+
+        # Send a GET request to list the contents of the snapshot
+            list_bucket_response = requests.get(
+            list_bucket_url, headers=headers)
+            if list_bucket_response.status_code == 200:
+                snapshot_contents = list_bucket_response.json()
+                print(f"Contents of snapshot: {args.snapshot}")
+                for item in snapshot_contents:
+                    print(item)
+            else:
+                print(
+                f"Failed to list contents of snapshot: {args.snapshot}. Status code: {list_bucket_response.status_code}")
+                exit(1)
