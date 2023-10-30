@@ -1,11 +1,17 @@
 {
+    "auth":[
+      {
+        "authname": "cookie",
+        "token":"dGVzdDp0ZXN0MQ==",
+        "url": "http://127.0.0.1:3000"
+      }
+    ],
     "buckets": [
       {
-        "base_url": "http://127.0.0.1:3000",
         "bucket": "laptop",
         "folder": "C:/Users/franc/Desktop/B",
-        "token": "dGVzdDp0ZXN0MQ==",
-        "incremental": true
+        "incremental": true,
+        "authname":"cookie"
       }
     ]
   }

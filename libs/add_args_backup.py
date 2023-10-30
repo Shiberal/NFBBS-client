@@ -14,10 +14,13 @@ def list_files_in_directory(root_dir):
 
 
 
-def add_args_backup(args, base_url, folder_path, bucket_name, headers):
-    if args.backup:
-        incremental = True  # Set to True if needed based on your settings
 
+def add_args_backup(args, base_url, folder_path, bucket_name, headers,_incremental):
+    if args.backup:
+        if _incremental == True:
+            incremental = True  # Set to True if needed based on your settings
+        else:
+            incremental = False
         if incremental:
             print("Performing incremental backup")
 
@@ -57,9 +60,34 @@ def add_args_backup(args, base_url, folder_path, bucket_name, headers):
         if snapshot_response.status_code != 200:
             print(f"Failed to create a new snapshot. Status code: {snapshot_response.status_code}")
             return
-
+        
         new_snapshot_name = snapshot_response.text
         print(f"Created a new snapshot: {new_snapshot_name}")
+        last_snapshot_name = snapshot_data[-1]['name']
+        print(f"Last snapshot: {last_snapshot_name}")
+
+        # deleting files from the snapshot that no longer exist
+        if(incremental):
+            local_files = list_files_in_directory(folder_path)
+            # from list_response get the last snapshot
+            for filename in all_snapshot_md5_hashes[last_snapshot_name]:
+                if filename not in local_files:
+                    # File doesn't exist locally, proceed with deletion
+                    if not os.path.exists(folder_path+"/"+filename):
+                        # Send a request to delete the file from the snapshot
+                        delete_response = requests.get(f"{base_url}/{bucket_name}/{new_snapshot_name}/deleteFile?path={filename}", headers=headers)
+                        if delete_response.status_code == 200:
+                            print(f"Deleted file {filename} from snapshot {new_snapshot_name}")
+                        else:
+                            print(f"Failed to delete file {filename} from snapshot {new_snapshot_name}. Status code: {delete_response.status_code}")
+        else:
+            #remove everything from current snapshot
+            for filename in all_snapshot_md5_hashes[last_snapshot_name]:
+                # Send a request to delete the file from the snapshot
+
+                delete_response = requests.get(f"{base_url}/{bucket_name}/{new_snapshot_name}/deleteFile?path={filename}", headers=headers)
+                if delete_response.status_code == 200:
+                    print(f"Deleted file {filename} from snapshot {new_snapshot_name}")
 
         # Iterate through files in the folder
         for root, _, files in os.walk(folder_path):
@@ -80,7 +108,9 @@ def add_args_backup(args, base_url, folder_path, bucket_name, headers):
                             should_upload = False
                             break  # No need to check further snapshots if the file is the same
 
-                if should_upload:
+                # The code block you provided is responsible for upload files to the snapshot if they need to be
+                # added or updated.
+                if should_upload or not incremental:
                     data = {'name': relative_path}
                     with open(file_path, 'rb') as file_data:
                         files = {'file': (relative_path, file_data)}
@@ -92,26 +122,4 @@ def add_args_backup(args, base_url, folder_path, bucket_name, headers):
                         else:
                             print(f"Failed to upload file: {relative_path}. Status code: {upload_response.status_code}")
 
-        # Delete files from the new snapshot if they are not present locally
-        #insert here const local_files =  that gives the complete list recursively of all file in the folder with path folder_path
-        
-
-
-
-        local_files = list_files_in_directory(folder_path)
-        #print (all_snapshot_md5_hashes)
-        
-
-        # from list_response get the last snapshot
-        last_snapshot_name = snapshot_data[-1]['name']
-
-        for filename in all_snapshot_md5_hashes[last_snapshot_name]:
-            if filename not in local_files:
-                # File doesn't exist locally, proceed with deletion
-                if not os.path.exists(folder_path+"/"+filename):
-                    # Send a request to delete the file from the snapshot
-                    delete_response = requests.get(f"{base_url}/{bucket_name}/{new_snapshot_name}/deleteFile?path={filename}", headers=headers)
-                    if delete_response.status_code == 200:
-                        print(f"Deleted file {filename} from snapshot {new_snapshot_name}")
-                    else:
-                        print(f"Failed to delete file {filename} from snapshot {new_snapshot_name}. Status code: {delete_response.status_code}")
+       
