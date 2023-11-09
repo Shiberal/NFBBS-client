@@ -38,7 +38,11 @@ def add_args_backup(args, base_url, folder_path, bucket_name, headers,_increment
         for snapshot in snapshot_data:
             snapshot_name = snapshot['name']
             print(f'Checking snapshot: {snapshot_name}');
-
+            if snapshot_name == '.DS_Store':
+                print(f'Skipping .DS_Store file')
+                continue
+            
+            print(f'Checking snapshot: {snapshot_name}');
             # Get MD5 hashes from the current snapshot
             snapshot_md5_response = requests.get(f"{base_url}/{bucket_name}/{snapshot_name}/listallwhash", headers=headers)
             if snapshot_md5_response.status_code != 200:
@@ -69,6 +73,7 @@ def add_args_backup(args, base_url, folder_path, bucket_name, headers,_increment
         # deleting files from the snapshot that no longer exist
         if(incremental):
             local_files = list_files_in_directory(folder_path)
+            
             # from list_response get the last snapshot
             for filename in all_snapshot_md5_hashes[last_snapshot_name]:
                 if filename not in local_files:
@@ -90,6 +95,7 @@ def add_args_backup(args, base_url, folder_path, bucket_name, headers,_increment
                     print(f"Deleted file {filename} from snapshot {new_snapshot_name}")
 
         # Iterate through files in the folder
+        print(f"Iterating through files in folder {folder_path}")
         for root, _, files in os.walk(folder_path):
             for file in files:
                 file_path = os.path.join(root, file)

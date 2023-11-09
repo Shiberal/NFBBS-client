@@ -8,8 +8,8 @@
     ],
     "buckets": [
       {
-        "bucket": "laptop",
-        "folder": "C:/Users/franc/Desktop/B",
+        "bucket": "mac",
+        "folder": "/Users/francesco/Desktop/test",
         "incremental": true,
         "authname":"cookie"
       }
