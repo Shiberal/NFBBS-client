@@ -103,7 +103,9 @@ def add_args_backup(args, base_url, folder_path, bucket_name, headers,_increment
 
                 # Check if the file is missing or different in any of the snapshots
                 should_upload = True
-
+                if file == '.DS_Store':
+                    print(f"Skipping .DS_Store file")
+                    continue
                 for snapshot_name, snapshot_md5_hashes in all_snapshot_md5_hashes.items():
                     if relative_path in snapshot_md5_hashes:
                         # Calculate the MD5 hash of the local file
@@ -120,6 +122,7 @@ def add_args_backup(args, base_url, folder_path, bucket_name, headers,_increment
                     data = {'name': relative_path}
                     with open(file_path, 'rb') as file_data:
                         files = {'file': (relative_path, file_data)}
+                        # remove .DS_Store from files variable
                         print(f"Uploading file: {f'{base_url}/{bucket_name}/{new_snapshot_name}/addFile?path={relative_path}'}")
                         upload_response = requests.post(
                             f'{base_url}/{bucket_name}/{new_snapshot_name}/addFile?name={relative_path}', headers=headers, data=data, files=files)
